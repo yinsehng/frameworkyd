@@ -1,9 +1,0 @@
-package com.neusoft.dao.impl;
-
-import org.springframework.stereotype.Repository;
-import com.neusoft.dao.IKc02Dao;
-
-@Repository
-public class KC02DaoImpl extends SuperDaoImpl implements IKc02Dao{
-
-}

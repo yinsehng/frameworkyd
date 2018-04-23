@@ -1,5 +1,0 @@
-package com.neusoft.dao;
-
-public interface IVAC03Dao extends ISuperDao{
-
-}

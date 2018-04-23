@@ -1,5 +1,0 @@
-package com.neusoft.dao;
-
-public interface IKc02Dao extends ISuperDao{
-
-}
