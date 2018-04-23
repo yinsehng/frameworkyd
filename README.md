@@ -8,4 +8,9 @@
 3、图片简介<br>
 
 ![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_shouye.png)
+![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_time.png)
+![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_person.png)
+![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_show.png)
+![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_timeline.png)
+![](https://github.com/yinsehng/frameworkyd/blob/master/doc/image/frameworkyd_money.png)
 
