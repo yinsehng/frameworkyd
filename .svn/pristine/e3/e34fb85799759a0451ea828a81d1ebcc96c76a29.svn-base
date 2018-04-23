@@ -1,0 +1,95 @@
+package com.neusoft.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IAC01Dao;
+import com.neusoft.dao.IAa26Dao;
+import com.neusoft.service.IAllPersonCountWeightService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.Data;
+import com.neusoft.util.ResultModel;
+import com.neusoft.util.SqlUtil;
+
+@Service
+public class AllPersonCountWeightServiceImpl implements IAllPersonCountWeightService{
+	private static final String TITLE = "全市参保人员占比统计";
+	@Resource
+	private IAC01Dao ac01Dao;
+	@Resource
+	public IAa26Dao aa26Dao;
+	
+	@Override
+	public ResultModel getAllPersonCountWeight() {
+		String querySql = "select AKC021 SUBJECT , sum(AAC006) count from ( select   " +                                        
+			      SqlUtil.getCommonSql() + "," +
+			      "sum(AAC006) AAC006 " +
+			      "from JK_AC01 " +
+			      "group by AKC021) group by AKC021";
+		List<Object> list = ac01Dao.getSqlData(querySql);
+		
+		String sql = "select AAB299 subject,sum(AAC006) count from JK_AC01 group by AAB299";
+		List<Object> array = ac01Dao.getSqlData(sql);
+		
+		ResultModel resultModel = ConvertDataToRMUtil.convertDataToRModel(list,array);
+		resultModel = convertRM(resultModel);
+		resultModel.setTitle(TITLE);
+		return resultModel;
+	}
+	
+	private ResultModel convertRM(ResultModel resultModel) {
+		Map<String, ArrayList> yAxis = resultModel.getyAxis();
+		Map<String, ArrayList> series = resultModel.getSeries();
+		ArrayList list_out = yAxis.get("out");
+		ArrayList list_in = yAxis.get("in");
+		ArrayList list_data = series.get("out");
+		ArrayList list_datas = series.get("in");
+		ArrayList data_list = new ArrayList();
+		for (int i = 0; i < list_out.size(); i++) {
+			String code = (String)list_out.get(i);
+			String name = getNameByCode(code);
+			Data data = new Data();
+			data.setName(name);
+			data.setValue(list_data.get(i));
+			data_list.add(data);
+		}
+		ArrayList datas = new ArrayList();
+		for (int i = 0; i < list_in.size(); i++) {
+			String code = (String)list_in.get(i);
+			String name = aa26Dao.getProvinceNameByCode(code);
+			/*if (name.contains("齐齐哈尔市")) {
+				name = name.replace("齐齐哈尔市", "");
+			}*/
+			Data data = new Data();
+			data.setName(name);
+			data.setValue(list_datas.get(i));
+			datas.add(data);
+		}
+		resultModel.getSeries().put("dataout", data_list);
+		resultModel.getSeries().put("datain", datas);
+		return resultModel;
+	}
+	
+	private String getNameByCode(String code) {
+		String name = "";
+		switch (code) {
+		case "11":
+			name = "农合";
+			break;
+		case "12":
+			name = "职工";
+			break;
+		case "13":
+			name = "居民(含农合)";
+			break;
+		default:
+			break;
+		}
+		return name;
+	}
+}

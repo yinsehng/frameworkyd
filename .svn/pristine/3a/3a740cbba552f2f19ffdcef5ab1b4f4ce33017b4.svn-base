@@ -1,0 +1,211 @@
+package com.neusoft.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import lombok.Data;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IAa26Dao;
+import com.neusoft.dao.IJYKC24Dao;
+import com.neusoft.dao.IKc02Dao;
+import com.neusoft.model.JK_KC02;
+import com.neusoft.model.JY_KC24;
+import com.neusoft.service.IJYKC24Service;
+import com.neusoft.util.DateUtil;
+import com.neusoft.util.PageHelper;
+import com.neusoft.util.PageHelper.Page;
+@Service
+public class JYKC24ServiceImpl implements IJYKC24Service{
+ 
+	private static Logger logger = Logger.getLogger(JYKC24ServiceImpl.class);
+	//....other code
+
+	
+	@Resource
+	public IJYKC24Dao jyKc24Dao;
+	@Resource
+	public IAa26Dao aa26Dao;
+	@Resource
+	public IKc02Dao kc02Dao;
+	@Override
+	public List<JY_KC24> findAll() {
+		List<JY_KC24> list = jyKc24Dao.findAll();
+		return list;
+	}
+	@SuppressWarnings("unchecked")
+	@Override
+	public PageHelper.Page<JY_KC24> findAllByPage() {
+		PageHelper.startPage(1, 10);
+		findAll();
+		return PageHelper.endPage();
+	}
+	
+	public List<JY_KC24> findAllNoAccount(String begin_time, String end_time){
+		List<JY_KC24> list = jyKc24Dao.findAllNoAccount(begin_time,end_time);
+		return list;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public PageHelper.Page<JY_KC24> findAllNoAccountByPage(String begin_time, String end_time, int def_pageNum, int def_pageSize){
+		PageHelper.startPage(def_pageNum, def_pageSize);
+		findAllNoAccount(begin_time, end_time);
+		PageHelper.Page<JY_KC24> list = PageHelper.endPage();
+		list = convertData(list);
+		return list;
+	}
+	private PageHelper.Page<JY_KC24> convertData(PageHelper.Page<JY_KC24> list) {
+		for (JY_KC24 kc24 : list.getResult()) {
+			kc24.setAAE040(DateUtil.subStrTime(kc24.getAAE040()));
+			kc24.setYAB003(aa26Dao.getProvinceNameByCode(kc24.getYAB003()));
+			kc24.setYAB300(aa26Dao.getProvinceNameByCode(kc24.getYAB300()));
+			String aaa204 = kc24.getAAA204();
+			if (aaa204 == null || "".equals(aaa204)) {
+				if ("1".equals(kc24.getAAE314())) {
+					kc24.setAAA204("已对账");
+				} else {
+					kc24.setAAA204("未对账");
+				}
+			}
+		}
+		
+		return list;
+	}
+	@Override
+	public List<Object> getAxisTime(String aac002, String akc190, String akc351, String yab060, String yab600) {
+		
+		if (yab060 != null) {
+			yab060 = yab060.substring(0, 2);
+		}
+		if (yab600 != null) {
+			yab600 = yab600.substring(0, 2);
+		}
+		List<JK_KC02> list_kc02 = kc02Dao.findAllByCondition(aac002, yab060, yab600, "ASC");
+		List<JY_KC24> list_kc24 = jyKc24Dao.findAllByCondition(akc190, akc351);
+		List<Object> list = convertAxisTime(list_kc02,list_kc24);
+		return list;
+	}
+	
+	@Override
+	public List<Object> getAxisTime(String aac002) {
+		List<JK_KC02> list_kc02 = kc02Dao.findAllByCondition(aac002, null, null, "ASC");
+		List<JY_KC24> list_kc24 = jyKc24Dao.findByCondition(null,aac002,null, "ASC");
+		List<Object> list = convertAxisTime(list_kc02,list_kc24);
+		return list;
+	}
+	
+	@Override
+	public Page<JY_KC24> findByCondition(String aac001, String aac002,
+			String aac003,int def_pageNum, int def_pageSize) {
+		PageHelper.startPage(def_pageNum, def_pageSize);
+		List<JY_KC24> JY_KC24_list = jyKc24Dao.findByCondition(aac001,aac002,aac003,"DESC");
+		PageHelper.Page<JY_KC24> list = PageHelper.endPage();
+		list = convertData(list);
+		return list;
+	}
+	
+	@Override
+	public JY_KC24 getKc24ByAkc351(String akc351) {
+		JY_KC24 data = jyKc24Dao.getKc24ByAkc351(akc351);
+		return data;
+	}
+	
+	@Override
+	public PageHelper.Page<JY_KC24> findAllAccountByPage(String begin_time,
+			String end_time, int def_pageNum, int def_pageSize) {
+		PageHelper.startPage(def_pageNum, def_pageSize);
+		jyKc24Dao.findAllAccount(begin_time,end_time);
+		PageHelper.Page<JY_KC24> list = PageHelper.endPage();
+		list = convertData(list);
+		return list;
+	}
+	
+	@Override
+	public Page<JY_KC24> findErrorAccountByPage(String begin_time,
+			String end_time, int def_pageNum, int def_pageSize) {
+		PageHelper.startPage(def_pageNum, def_pageSize);
+		jyKc24Dao.findAllErrorAccount(begin_time,end_time);
+		PageHelper.Page<JY_KC24> list = PageHelper.endPage();
+		list = convertData(list);
+		return list;
+	}
+	
+	private List<Object> convertAxisTime(List<JK_KC02> list_kc02,
+			List<JY_KC24> list_kc24) {
+		//{'备案时间':'2017-09-09 至 2099-09-09',
+		//'姓名':'张大宝','身份证号':'2102001192309091211',
+		//'经办时间':'黑龙江省齐齐哈尔市',
+		//'状态':'有效','医院':'参保地->就医地'}
+		List<Object> list = new ArrayList<>(list_kc02.size() + list_kc24.size());
+		for (JK_KC02 kc02 : list_kc02) {
+			DataOne data = new DataOne();
+			data.setAac002(kc02.getAAC002());
+			data.setAac003(kc02.getAAC003());
+			data.setAae036(kc02.getAAE036().toLocaleString());
+			data.setAae011(kc02.getAAE011());
+			data.setStatus("1".equals(kc02.getYDBZ())?"有效":"无效");
+			data.setAkc044(DateUtil.getTimeYMD(kc02.getAKC044()) + "至" + DateUtil.getTimeYMD(kc02.getAKC043()));
+			data.setCommon("参保地   " + aa26Dao.getProvinceNameByCode(kc02.getYAB003()) + "   ->   就医地    " + aa26Dao.getProvinceNameByCode(kc02.getYAB300()));
+			data.setAac004("1".equals(kc02.getAAC004())?"男":"女");
+			list.add(data);
+		}
+		for (JY_KC24 kc24 : list_kc24) {
+			if ("1".equals(kc24.getAKA135())) {
+				String aae072 = kc24.getAAE072();
+				String akc190 = kc24.getAKC190();
+				StringBuffer status = new StringBuffer();
+				//查询是否存在撤销冲正
+				JY_KC24 result = jyKc24Dao.findAccount(akc190, "CX" + aae072);
+				if (result != null) {
+					status.append("已撤销   ");
+				}
+				JY_KC24 res = jyKc24Dao.findAccount(akc190, "CZ" + aae072);
+				if (res != null) {
+					status.append("已冲正");
+				}
+				DataTwo data = new DataTwo();
+				data.setAac003(kc24.getAAC003());
+				data.setCommon(kc24.getAKB021());
+				data.setTime(DateUtil.subStrTime(kc24.getAAE036()));
+				data.setAae011(kc24.getAAE011());
+				data.setAkc021("1".equals(kc24.getAKC021())?"异地安置":"转诊");
+				data.setAkc264(kc24.getAKC264()+"");
+				data.setAab004(kc24.getAAB004()==null?"保密":kc24.getAAB004());
+				data.setAka135(kc24.getAKA135()+"&"+kc24.getAKC351());
+				data.setStatus("".equals(status.toString())?"正常结算":status.toString());
+				list.add(data);
+			}
+			
+		}
+		return list;
+	}
+	@Data
+	class DataOne {
+		private String aac003;
+		private String aac002;
+		private String akc044;
+		private String aae036;
+		private String aae011;
+		private String aac004;
+		private String status;
+		private String common;
+	}
+	@Data
+	class DataTwo {
+		private String aac003;
+		private String common;
+		private String akc021;
+		private String akc264;
+		private String aae011;
+		private String time;
+		private String aab004;
+		private String aka135;
+		private String akc351;
+		private String status;
+	}
+	
+}

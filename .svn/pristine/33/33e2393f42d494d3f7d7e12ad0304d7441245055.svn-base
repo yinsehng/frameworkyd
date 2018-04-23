@@ -1,0 +1,30 @@
+package com.neusoft.service.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IAC02Dao;
+import com.neusoft.service.IAllPersonCountTrendService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.ResultModel;
+import com.neusoft.util.SqlUtil;
+@Service
+public class AllPersonCountTrendServiceImpl implements IAllPersonCountTrendService{
+	private static final String TITLE = "全市参保人员变化波动走向";
+	@Resource
+	private IAC02Dao ac02Dao;
+	@Override
+	public ResultModel getAllPersonCountTrend() {
+		String querySql = "select *from (select AAE043 subject, sum(AAC006) aac006," +
+				SqlUtil.getCommonSql() + " from jk_ac02 " +
+		        " group by AAE043, akc021) pivot(sum(AAC006) for akc021 in('12' akc023,'13' akc024)) order by SUBJECT";
+		List<Object> list = ac02Dao.getSqlData(querySql);
+		ResultModel resultModel = ConvertDataToRMUtil.convertDataToModel(list);
+		resultModel.setTitle(TITLE);
+		return resultModel;
+	}
+
+}

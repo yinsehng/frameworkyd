@@ -1,0 +1,140 @@
+package com.neusoft.model;
+
+import java.util.Date;
+/**
+ * 描述：为备案信息的实体类
+ * @author ys
+ * @since 2017/07/04
+ * @version 1.0
+ */
+public class JK_KC02 {
+
+	private String  AAE073;     //审批编号
+	private String  AAC001;     //参保地个人编号
+	private String  AAC001_N;   //就医地个人编号
+	private String  AAC003;     //姓名
+	private String  AAC002;     //身份证号
+	private String  AAC004;     //性别
+	private Date  AAC006;       //出生日期
+	private String  YAB003;     //参保地
+	private String  YAB300;     //就医地
+	private String  YAB060;     //参保地
+	private String  YAB600;     //就医地
+	private String  AKC170;     //审批类别
+	private String  YDBZ;       //异地标志
+	private Date  AKC044;       //备案开始日期
+	private String  AKC043;     //备案终止日期
+	private String  AKC021;     //参保人员类别
+	private String  AAE011;     //经办人
+	private Date  AAE036;       //经办时间
+	public String getAAE073() {
+		return AAE073;
+	}
+	public void setAAE073(String aAE073) {
+		AAE073 = aAE073;
+	}
+	public String getAAC001() {
+		return AAC001;
+	}
+	public void setAAC001(String aAC001) {
+		AAC001 = aAC001;
+	}
+	public String getAAC001_N() {
+		return AAC001_N;
+	}
+	public void setAAC001_N(String aAC001_N) {
+		AAC001_N = aAC001_N;
+	}
+	public String getAAC003() {
+		return AAC003;
+	}
+	public void setAAC003(String aAC003) {
+		AAC003 = aAC003;
+	}
+	public String getAAC002() {
+		return AAC002;
+	}
+	public void setAAC002(String aAC002) {
+		AAC002 = aAC002;
+	}
+	public String getAAC004() {
+		return AAC004;
+	}
+	public void setAAC004(String aAC004) {
+		AAC004 = aAC004;
+	}
+	
+	public Date getAAC006() {
+		return AAC006;
+	}
+	public void setAAC006(Date aAC006) {
+		AAC006 = aAC006;
+	}
+	public String getYAB003() {
+		return YAB003;
+	}
+	public void setYAB003(String yAB003) {
+		YAB003 = yAB003;
+	}
+	public String getYAB300() {
+		return YAB300;
+	}
+	public void setYAB300(String yAB300) {
+		YAB300 = yAB300;
+	}
+	public String getAKC170() {
+		return AKC170;
+	}
+	public void setAKC170(String aKC170) {
+		AKC170 = aKC170;
+	}
+	public String getYDBZ() {
+		return YDBZ;
+	}
+	public void setYDBZ(String yDBZ) {
+		YDBZ = yDBZ;
+	}
+	public Date getAKC044() {
+		return AKC044;
+	}
+	public void setAKC044(Date aKC044) {
+		AKC044 = aKC044;
+	}
+	public String getAKC043() {
+		return AKC043;
+	}
+	public void setAKC043(String aKC043) {
+		AKC043 = aKC043;
+	}
+	public String getAKC021() {
+		return AKC021;
+	}
+	public void setAKC021(String aKC021) {
+		AKC021 = aKC021;
+	}
+	public String getAAE011() {
+		return AAE011;
+	}
+	public void setAAE011(String aAE011) {
+		AAE011 = aAE011;
+	}
+	public Date getAAE036() {
+		return AAE036;
+	}
+	public void setAAE036(Date aAE036) {
+		AAE036 = aAE036;
+	}
+	public String getYAB060() {
+		return YAB060;
+	}
+	public void setYAB060(String yAB060) {
+		YAB060 = yAB060;
+	}
+	public String getYAB600() {
+		return YAB600;
+	}
+	public void setYAB600(String yAB600) {
+		YAB600 = yAB600;
+	}
+	
+}

@@ -1,0 +1,10 @@
+package com.neusoft.service;
+
+import com.neusoft.util.ResultModel;
+
+public interface IDiseasesOrderService {
+
+	public ResultModel getDiseasesOrderTop(String beginTime, String endTime,String localName);
+	
+	public ResultModel getDiseasesOrderTop();
+}

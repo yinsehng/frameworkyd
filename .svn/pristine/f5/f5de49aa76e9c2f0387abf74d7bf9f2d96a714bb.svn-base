@@ -1,0 +1,85 @@
+package com.neusoft.service.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IKc24Dao;
+import com.neusoft.service.IBusinessMoneyService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.DateUtil;
+import com.neusoft.util.ResultModel;
+
+@Service
+public class BusinessMoneyServiceImpl implements IBusinessMoneyService{
+
+	private static final String TITLE = "交易金额走势";
+	
+	@Resource
+	public IKc24Dao kc24Dao;
+	
+	public ResultModel getBusinessMoney() {
+		return getBusinessMoney(null, null,null);
+	}
+	@Override
+	public ResultModel getBusinessMoney(String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,localName);
+		//获取当年年份
+		int year = DateUtil.getYear();
+		//查询当年交易金额
+		String out_sql = "select *from (select sum(AKC264) count ,to_char(AAE040,'yyyy-mm') subject from JK_KC24 " + sql +
+		                 " and substr(yab003,0,2) = '22' and substr(yab300,0,2) = '22'  group by to_char(AAE040,'yyyy-mm')) where subject >= '" + year + "-01' order by subject asc";
+		String in_sql = "select *from (select sum(AKC264) count ,to_char(AAE040,'yyyy-mm') subject from JK_KC24 " + sql +
+		                " and substr(yab300,0,2) = '22' and substr(yab003,0,2) = '22'  group by to_char(AAE040,'yyyy-mm'))  where subject >= '" + year + "-01' order by subject asc";
+		List<Object> list_out = kc24Dao.getSqlData(out_sql);
+		List<Object> list_in = kc24Dao.getSqlData(in_sql);
+		ResultModel rm = ConvertDataToRMUtil.convertDataToRM(list_out, list_in);
+		rm.setTitle(TITLE);
+		return rm;
+	}
+	
+	public String getBusinessTotalMoney () {
+		return getBusinessTotalMoney (null, null,null);
+	}
+	
+	public String getBusinessTotalMoney (String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,null);
+		String sql11=" and 1=1 ";
+		String sql22=" and 1=1 ";
+		String query_sql ="select sum(AKC264) subject from JK_KC24 " + sql;
+		if(localName!=null){
+			sql11=sql11+" and yab003=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			sql22=sql22+" and yab300=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			query_sql = "select sum(AKC264) subject from JK_KC24 " + sql +sql11 +" UNION ALL select sum(AKC264) subject from JK_KC24 " + sql +sql22 ;
+		}
+		
+		List<Object> list = kc24Dao.getSqlData(query_sql);
+		return ConvertDataToRMUtil.getResultData(list);
+	}
+	
+	public String getBalanceNumber () {
+		return getBalanceNumber (null, null,null);
+	}
+	
+	public String getBalanceNumber (String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,null);
+		String sql11=" and 1=1 ";
+		String sql22=" and 1=1 ";
+		String query_sql = "select count(*) subject from (select distinct(AKC190) from JK_KC24 " + sql + ") ";
+		if(localName!=null){
+			sql11=sql11+" and yab003=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			sql22=sql22+" and yab300=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			query_sql = "select count(*) subject from (select distinct(AKC190) from JK_KC24 " + sql +sql11 +") UNION ALL select count(*) subject from (select distinct(AKC190) from JK_KC24 " + sql +sql22+")" ;
+		}
+		List<Object> list = kc24Dao.getSqlData(query_sql);
+		String result = ConvertDataToRMUtil.getResultData(list);
+//		if (result.contains(".")) {
+//			result = result.substring(0, result.indexOf("."));
+//		}
+		result=result.replaceAll(".00", "");
+		return result;
+	}
+	
+}

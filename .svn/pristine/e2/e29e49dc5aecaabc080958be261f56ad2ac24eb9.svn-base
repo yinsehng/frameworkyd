@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JK_KC02Mapper">
+	
+	<resultMap id="BaseResultMap" type="com.neusoft.model.JK_KC02" >
+		<result column="AAE073" property="AAE073" jdbcType="VARCHAR"/>
+	    <result column="AAC001" property="AAC001" jdbcType="VARCHAR"/>
+	    <result column="AAC001_N" property="AAC001_N" jdbcType="VARCHAR"/>
+	    
+	    <result column="AAC003" property="AAC003" jdbcType="VARCHAR"/>
+	    <result column="AAC002" property="AAC002" jdbcType="VARCHAR"/>
+	    <result column="AAC004" property="AAC004" jdbcType="VARCHAR"/>
+	    
+	    <result column="AAC006" property="AAC006" jdbcType="DATE"/>
+	    <result column="YAB003" property="YAB003" jdbcType="VARCHAR"/>
+	    <result column="YAB300" property="YAB300" jdbcType="VARCHAR"/>
+	    
+	    <result column="YAB060" property="YAB060" jdbcType="VARCHAR"/>
+	    <result column="YAB600" property="YAB600" jdbcType="VARCHAR"/>
+	    
+	    <result column="YDBZ" property="YDBZ" jdbcType="VARCHAR"/>
+	    <result column="AKC044" property="AKC044" jdbcType="VARCHAR"/>
+	    <result column="AKC043" property="AKC043" jdbcType="VARCHAR"/>
+	    
+	    <result column="AKC021" property="AKC021" jdbcType="VARCHAR"/>
+	    <result column="AAE011" property="AAE011" jdbcType="VARCHAR"/>
+	    <result column="AAE036" property="AAE036" jdbcType="VARCHAR"/>
+	    <result column="count" property="count" jdbcType="INTEGER"/>
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		AAE073, AAC001, AAC001_N, AAC003, AAC002,
+		AAC004, AAC006, YAB003, YAB300, AKC170,
+		YDBZ, AKC044, AKC043, AKC021, AAE011, AAE036, YAB060, YAB600
+	</sql>
+
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT <include refid="Base_Column_List" />
+		FROM JK_KC02
+	</select>
+	
+	<select id="findAllByCondition" resultMap="BaseResultMap">
+		SELECT <include refid="Base_Column_List" />
+		FROM JK_KC02 where aac002 = #{aac002} 
+		<if test="yab060 != null and yab060 != ''">
+			and substr(yab060,0,2) = #{yab060}
+		</if>
+		<if test="yab600 != null and yab600 != ''">
+			and substr(yab600,0,2) = #{yab600}
+		</if>
+		order by AAE036 ${order}
+		
+	</select>
+	
+	<select id="getSqlData" parameterType="String" resultType="java.util.HashMap">
+	    ${value}
+	</select>
+
+</mapper>

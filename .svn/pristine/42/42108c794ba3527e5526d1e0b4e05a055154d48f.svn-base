@@ -1,0 +1,9 @@
+package com.neusoft.dao.impl;
+
+import org.springframework.stereotype.Repository;
+
+import com.neusoft.dao.IVAC03Dao;
+@Repository
+public class VAC03DaoImpl extends SuperDaoImpl implements IVAC03Dao{
+
+}

@@ -1,0 +1,72 @@
+package com.neusoft.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.ctc.wstx.util.DataUtil;
+import com.neusoft.dao.IAC01Dao;
+import com.neusoft.dao.IAa26Dao;
+import com.neusoft.dao.IVAC03Dao;
+import com.neusoft.service.IAllPersonCountMapService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.Data;
+import com.neusoft.util.ResultModel;
+import com.neusoft.util.SqlUtil;
+@Service
+public class AllPersonCountMapServiceImpl implements IAllPersonCountMapService{
+
+	private static final String TITLE = "齐齐哈尔市参保统计监控平台";
+	@Resource
+	private IAC01Dao ac01Dao;
+	@Resource
+	public IAa26Dao aa26Dao;
+	@Resource
+	public IVAC03Dao vac03Dao;
+	@Override
+	public ResultModel getAllPersonDetCountMap() {
+		String querySql = "select *from V_JK_AC03";
+		List<Object> list = vac03Dao.getSqlData(querySql);
+		ResultModel resultModel = ConvertDataToRMUtil.convertDataToModel(list);
+		resultModel = convertRM(resultModel);
+		resultModel.setTitle(TITLE);
+		return resultModel;
+	}
+	
+	private ResultModel convertRM(ResultModel resultModel) {
+		Map<String, ArrayList> yAxis = resultModel.getyAxis();
+		ArrayList list = yAxis.get("axis");
+		for (int i = 0; i < list.size(); i++) {
+			String code = (String)list.get(i);
+			String name = aa26Dao.getProvinceNameByCode(code);
+			/*if (name.contains("齐齐哈尔市")) {
+				name = name.replace("齐齐哈尔市", "");
+			}*/
+			resultModel.getyAxis().get("axis").set(i, name);
+		}
+		//对地图数据进行封装
+		Map<String, ArrayList> series = resultModel.getSeries();
+		ArrayList data_list = series.get("data");
+		ArrayList list_data = new ArrayList();
+		if (data_list != null && data_list.size() > 0) {
+			for (int i = 0 ; i < data_list.size(); i++) {
+				ArrayList data = (ArrayList)data_list.get(i);
+				ArrayList d_list = new ArrayList();
+				for (int j = 0; j < data.size(); j++) {
+					Data d = new Data();
+					d.setName(list.get(j).toString());
+					d.setSelected(false);
+					d.setValue(data.get(j));
+					d_list.add(d);
+				}
+				list_data.add(d_list);
+			}
+		}
+		resultModel.getSeries().put("series", list_data);
+		return resultModel;
+	}
+}

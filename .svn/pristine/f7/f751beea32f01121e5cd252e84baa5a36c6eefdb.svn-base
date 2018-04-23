@@ -1,0 +1,18 @@
+package com.neusoft.service;
+
+import com.neusoft.util.ResultModel;
+
+public interface IBusinessMoneyService {
+
+	public ResultModel getBusinessMoney(String beginTime, String endTime,String localName);
+	
+	public ResultModel getBusinessMoney();
+	
+	public String getBusinessTotalMoney (String beginTime, String endTime,String localName);
+	
+	public String getBalanceNumber (String beginTime, String endTime,String localName);
+	
+	public String getBalanceNumber ();
+	
+	public String getBusinessTotalMoney ();
+}

@@ -1,0 +1,70 @@
+package com.neusoft.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IAa26Dao;
+import com.neusoft.dao.IKc02Dao;
+import com.neusoft.service.IRealtimePersonService;
+
+@Service
+public class RealtimePersonServiceImpl implements IRealtimePersonService{
+
+	@Resource
+	public IKc02Dao kc02Dao;
+	@Resource
+	public IAa26Dao aa26Dao;
+	
+	@Override
+	public List getRealtimePerson() {
+		String sql = " select *from (select AAC003, yab300,yab003,yab060,yab600, AAE036 from JK_KC02 where YDBZ = 1 order by aae036 desc) where rownum <= 5";
+		List list = kc02Dao.getSqlData(sql);
+		list = convertList(list);
+		return list;
+	}
+
+	private List convertList(List list) {
+		for (Object  obj : list) {
+			HashMap<String, Object> map = (HashMap<String, Object>)obj;
+			if(map!=null){
+				String AAE036 = (map.get("AAE036")==null?"":map.get("AAE036")).toString();
+				if (AAE036 != null && AAE036.contains(".0")) {
+					int position = AAE036.indexOf(".0");
+					map.put("AAE036", AAE036.substring(0, position));
+				}
+				String YAB060 = map.get("YAB060").toString();
+				if (YAB060 != null && !"".equals(YAB060)) {
+					String name = aa26Dao.getProvinceNameByCode(YAB060);
+					if (name == null) {
+						String YAB003 = map.get("YAB003").toString();
+						name = aa26Dao.getProvinceNameByCode(YAB003);
+					}
+					map.put("YAB060", name);
+				} else {
+					String YAB003 = map.get("YAB003").toString();
+					String name = aa26Dao.getProvinceNameByCode(YAB003);
+					map.put("YAB060", name);
+				}
+				String YAB600 = map.get("YAB600").toString();
+				if (YAB600 != null && !"".equals(YAB600)) {
+					String name = aa26Dao.getProvinceNameByCode(YAB600);
+					if (name == null) {
+						String YAB300 = map.get("YAB300").toString();
+						name = aa26Dao.getProvinceNameByCode(YAB300);
+					}
+					map.put("YAB600", name);
+				} else {
+					String YAB300 = map.get("YAB300").toString();
+					String name = aa26Dao.getProvinceNameByCode(YAB300);
+					map.put("YAB600", name);
+				}
+			}
+		}
+		return list;
+	}
+
+}

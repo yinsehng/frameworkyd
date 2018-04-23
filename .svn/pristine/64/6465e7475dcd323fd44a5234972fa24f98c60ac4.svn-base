@@ -1,0 +1,132 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8" contentType="text/html; charset=utf-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+	//获取数据
+	String elsewherePerson_json = (String)request.getAttribute("elsewherePerson_json");
+%>
+<!-- 异地人员占比页面 -->
+<div style="width: 100%; height: 100%;">
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="elsewhere_person" style="height:100%;width:100%"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts图表
+        var elsewherePerson_json = <%= elsewherePerson_json %>;
+        var myChartElsewherePerson = echarts.init(document.getElementById('elsewhere_person')); 
+        flushlsEwherePerson(elsewherePerson_json);
+        //此处调用定时任务
+        $(document).ready(function () {
+        	setInterval("getEwherePersonByAjax()", 1000*60*5);
+        });
+        //定义getDiseasesOrderByAjax函数
+        function getEwherePersonByAjax() {
+        	if(autoflag!=1){
+				return;
+			}
+        	$.ajax( {  
+        	    url:'<%=basePath %>ActionServlet?method=elsewherePersonAction&ajax=true',
+        	    data:{},  
+        	    type:'GET',
+        	    cache:false, 
+        	    dataType:'json',
+        	    success:function(resultmodel) {
+        	        if(resultmodel.code =="200" ){
+        	        	flushlsEwherePerson(resultmodel);
+        	        }
+        	     },
+        	     error : function() {
+        	         if (resultmodel.code =="500"){
+        	        	  alert(resultmodel.message);
+        	         }
+        	     }
+        	});
+        }
+        
+        function flushlsEwherePerson(elsewherePerson_json) {
+        	//添加颜色显示
+        	setColor(elsewherePerson_json);
+        	option = {
+        			
+        			title: {
+        			        text: elsewherePerson_json.title,
+        			        sublink: 'http://www.neusoft.com',
+        			        left: 'left',
+        			        textStyle: {
+        			            color: '#fff'
+        			        }
+        			    },
+        			     tooltip : {},
+        			    series: [
+        			        {
+        			            name:'异地类别',
+        			            type:'pie',
+        						
+        			            selectedMode: 'single',
+        			            radius: [0, '30%'],
+        			
+        			            label: {
+        			                normal: {
+        			                    position: 'inner'
+        			                }
+        			            },
+        			            labelLine: {
+        			                normal: {
+        			                    show: false
+        			                }
+        			            },
+        			            data: elsewherePerson_json.data.AKC170
+        			        },
+        			        {
+        			            name:'年龄',
+        			            type:'pie',
+        			           radius: ['65%', '80%'], 
+        			
+        			            data: elsewherePerson_json.data.yearArea
+        			        }
+        			        ,
+        			        {
+        			            name:'备案类别',
+        			            type:'pie',
+        			            radius: ['40%', '55%'],
+        			
+        			            data: elsewherePerson_json.data.inout
+        			        }
+        			    ]
+        		};
+                // 为echarts对象加载数据 
+                myChartElsewherePerson.setOption(option);
+                
+        } 
+		
+        function setColor(elsewherePerson_json) {
+        	 var obj_fl = new Array();
+        	 obj_fl[0] = {normal:{color:'#5db0e6'}};
+        	 obj_fl[1] = {normal:{color:'#e9e8ee'}};
+        	 var obj_inout = new Array();
+        	 obj_inout[0] = {normal:{color:'#10b7a3'}};
+        	 obj_inout[1] = {normal:{color:'#e78a69'}};
+        	 var obj_age = new Array();
+        	 obj_age[0] = {normal:{color:'#54cde8'}};
+        	 obj_age[1] = {normal:{color:'#49b3ec'}};
+        	 obj_age[2] = {normal:{color:'#3b91e4'}};
+        	 obj_age[3] = {normal:{color:'#3147ec'}};
+        	 obj_age[4] = {normal:{color:'#286cc1'}};
+        	 obj_age[5] = {normal:{color:'#0e58b7'}};
+        	 obj_age[6] = {normal:{color:'#1d4f8c'}};
+        	 obj_age[7] = {normal:{color:'#10b7a3'}};
+        	 var data_akc170 = elsewherePerson_json.data.AKC170;
+        	 for (var i = 0; i < data_akc170.length; i++) {
+        		 //(",itemStyle:{normal:{color:'#5db0e6'}}")
+        		 data_akc170[i]["itemStyle"] = obj_fl[i];
+        	 }
+        	 var data_inout = elsewherePerson_json.data.inout;
+        	 for (var i = 0; i < data_inout.length; i++) {
+        		 data_inout[i]["itemStyle"] = obj_inout[i];
+        	 }
+        	 var data_age = elsewherePerson_json.data.yearArea;
+        	 for (var i = 0; i < data_age.length; i++) {
+        		 data_age[i]["itemStyle"] = obj_age[i];
+        	 }
+        }
+    </script>
+</div>

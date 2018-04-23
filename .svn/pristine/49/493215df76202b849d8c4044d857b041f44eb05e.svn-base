@@ -1,0 +1,88 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8" contentType="text/html; charset=utf-8"%>
+<% 
+	String enregisterOrder = (String)request.getAttribute("enregisterOrder");
+%> 
+<!-- 备案登记排行 -->
+<div style="width: 500px; height: 500px;">
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="enregister_order" style="height:250px;width:500px"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts图表
+        var enregisterOrder_json = <%= enregisterOrder%>;
+        console.log(enregisterOrder_json);
+        alert(enregisterOrder_json.code);
+        var myChart = echarts.init(document.getElementById('enregister_order')); 
+		option = {
+		    title: {
+		        text: enregisterOrder_json.title,
+		        sublink: 'http://www.neusoft.com',
+		        left: 'center',
+		        textStyle: {
+		            color: '#fff'
+		        }
+		    },
+		    tooltip: {
+		        trigger: 'axis',
+		        axisPointer: {
+		            type: 'shadow'
+		        }
+		    },
+		 
+		    grid: {
+		        left: '3%',
+		        right: '4%',
+		        bottom: '3%',
+		        containLabel: true
+		    },
+		    xAxis: {
+		        type: 'value',
+		        boundaryGap: [0, 0.01],
+				axisLine:{
+		                lineStyle:{
+		                    color:'#fff',
+		                }
+		            }
+		    },
+		    yAxis: {
+		        type: 'category',
+		        data: enregisterOrder_json.yAxis.转出,
+				 axisLabel:{
+		              textStyle:{
+		                 color:"#fff", //刻度颜色
+		               
+		            }
+		          },
+				  axisLine:{
+		                lineStyle:{
+		                    color:'#fff',
+		                  
+		                }
+		            }
+		    },
+		    series: [
+		        {
+		            name: '转入',
+		            type: 'bar',
+					barWidth : 5,
+		            data: enregisterOrder_json.series.转入
+					
+		        },
+				 {
+		            name: '转出',
+		            type: 'line',
+		            data: enregisterOrder_json.series.转出,
+					itemStyle: {
+					normal:{
+						lineStyle: {
+		            color: '#fff'
+		        }
+					}
+			
+				}
+		    }
+		    ]
+		};
+        // 为echarts对象加载数据 
+        myChart.setOption(option); 
+    </script>
+</div>

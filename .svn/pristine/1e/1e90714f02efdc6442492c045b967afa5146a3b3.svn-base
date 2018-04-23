@@ -1,0 +1,118 @@
+package com.neusoft.controller.business;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.model.JK_AA26;
+import com.neusoft.service.IAllPersonCountMapService;
+import com.neusoft.service.IAllPersonCountService;
+import com.neusoft.service.IAllPersonCountTrendService;
+import com.neusoft.service.IAllPersonCountWeightService;
+import com.neusoft.service.IAllPersonDetailCountService;
+import com.neusoft.service.IBusinessMoneyService;
+import com.neusoft.service.IDataTransferMapService;
+import com.neusoft.service.IDiseasesOrderService;
+import com.neusoft.service.IElsewhereHospitalizeService;
+import com.neusoft.service.IElsewherePersonService;
+import com.neusoft.service.IEnregisterOrderService;
+import com.neusoft.service.IIndexService;
+import com.neusoft.service.IRealtimeHospitalizeService;
+import com.neusoft.service.IRealtimePersonService;
+import com.neusoft.util.ResultModel;
+
+@Controller
+public class IndexAction implements SuperAction{
+	@Autowired
+	private IAllPersonCountService allPersonCountService;
+	@Autowired
+	private IAllPersonDetailCountService allPersonDetailCountService;
+	@Autowired
+	private IAllPersonCountMapService allPersonCountMapService;
+	@Autowired
+	private IAllPersonCountWeightService allPersonCountWeightService;
+	@Autowired
+	private IAllPersonCountTrendService allPersonCountTrendService;
+	
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		HashMap<String, String> map = new HashMap<>();
+		//用于获取全市的人员数量
+		ResultModel allPersonCount_rm = allPersonCountService.getAllPersonCount();
+		String allPersonCount_json = JSON.toJSONString(allPersonCount_rm);
+		map.put("allPersonCount_json", allPersonCount_json);
+		
+		//用于获取各个区县参保人员情况
+		ResultModel allPersonDetailCount_rm = allPersonDetailCountService.getAllPersonDetCount();
+		String allPersonDetailCount = JSON.toJSONString(allPersonDetailCount_rm);
+		map.put("allPersonDetailCount_json", allPersonDetailCount);
+		
+		//用于地图数据的获取
+		ResultModel allPersonCountMap_rm = allPersonCountMapService.getAllPersonDetCountMap();
+		String allPersonCountMap = JSON.toJSONString(allPersonCountMap_rm);
+		map.put("allPersonCountMap_json", allPersonCountMap);
+		
+		//用于获取人员占比数据
+		ResultModel allPersonCountWeight_rm = allPersonCountWeightService.getAllPersonCountWeight();
+		String allPersonCountWeight = JSON.toJSONString(allPersonCountWeight_rm);
+		map.put("allPersonCountWeight_json", allPersonCountWeight);
+		
+		//用于获取人员趋势走向
+		ResultModel allPersonCountTrend_rm = allPersonCountTrendService.getAllPersonCountTrend();
+		String allPersonCountTrend = JSON.toJSONString(allPersonCountTrend_rm);
+		map.put("allPersonCountTrend_json", allPersonCountTrend);
+		
+		String data = JSON.toJSONString(map);
+		return data;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		try {
+			
+			//用于获取全市的人员数量
+			ResultModel allPersonCount_rm = allPersonCountService.getAllPersonCount();
+			String allPersonCount = JSON.toJSONString(allPersonCount_rm);
+			request.setAttribute("allPersonCount", allPersonCount);
+			
+			//用于获取各个区县参保人员情况
+			ResultModel allPersonDetailCount_rm = allPersonDetailCountService.getAllPersonDetCount();
+			String allPersonDetailCount = JSON.toJSONString(allPersonDetailCount_rm);
+			request.setAttribute("allPersonDetailCount", allPersonDetailCount);
+			
+			//用于地图数据的获取
+			ResultModel allPersonCountMap_rm = allPersonCountMapService.getAllPersonDetCountMap();
+			String allPersonCountMap = JSON.toJSONString(allPersonCountMap_rm);
+			request.setAttribute("allPersonCountMap", allPersonCountMap);
+			
+			//用于获取人员占比数据
+			ResultModel allPersonCountWeight_rm = allPersonCountWeightService.getAllPersonCountWeight();
+			String allPersonCountWeight = JSON.toJSONString(allPersonCountWeight_rm);
+			request.setAttribute("allPersonCountWeight", allPersonCountWeight);
+			
+			//用于获取人员趋势走向
+			ResultModel allPersonCountTrend_rm = allPersonCountTrendService.getAllPersonCountTrend();
+			String allPersonCountTrend = JSON.toJSONString(allPersonCountTrend_rm);
+			request.setAttribute("allPersonCountTrend", allPersonCountTrend);
+			
+			request.getRequestDispatcher("/jk/index.jsp").forward(request, response);
+			
+		} catch (ServletException | IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+}

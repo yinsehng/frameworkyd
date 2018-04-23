@@ -1,0 +1,37 @@
+package com.neusoft.controller.business;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.xmlbeans.impl.xb.xsdschema.Public;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.service.IRealtimeHospitalizeService;
+
+@Controller
+public class RealtimeHospitalizeAction implements SuperAction{
+
+	@Autowired
+	public IRealtimeHospitalizeService realtimeHospitalizeService;
+	
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		List realtimeHospitalize = realtimeHospitalizeService.getRealtimeHospitalize();
+		String realtimeHospitalize_json = JSON.toJSONString(realtimeHospitalize);
+		return realtimeHospitalize_json;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

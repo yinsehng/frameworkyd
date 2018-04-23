@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JK_AA26Mapper">
+	
+	<resultMap id="BaseResultMap" type="com.neusoft.model.JK_AA26" >
+		<result column="BAZ001" property="BAZ001" jdbcType="VARCHAR"/>
+		<result column="BAZ002" property="BAZ002" jdbcType="VARCHAR"/>
+	    <result column="AAB301" property="AAB301" jdbcType="VARCHAR"/>
+	    <result column="AAA146" property="AAA146" jdbcType="VARCHAR"/>
+	    
+	    <result column="AAA148" property="AAA148" jdbcType="VARCHAR"/>
+	    <result column="AAE383" property="AAE383" jdbcType="VARCHAR"/>
+	    <result column="AAE013" property="AAE013" jdbcType="VARCHAR"/>
+	    
+	    <result column="AAA149" property="AAA149" jdbcType="VARCHAR"/>
+	    <result column="AAA150" property="AAA150" jdbcType="VARCHAR"/>
+	    
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		BAZ001,BAZ002,AAB301,AAA146,AAA148,AAE383,AAE013,AAA149,AAA150
+	</sql>
+
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT <include refid="Base_Column_List" />
+		FROM JK_AA26
+	</select>
+	
+	<select id="getProvinceNameByCode" parameterType="String" resultType="java.lang.String">
+		select AAA146 from JK_AA26 where AAB301 = #{AAB301}
+	</select>
+
+</mapper>

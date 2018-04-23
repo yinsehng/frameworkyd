@@ -1,0 +1,202 @@
+package com.neusoft.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IKc02Dao;
+import com.neusoft.service.IEnregisterOrderService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.ResultModel;
+
+@Service
+public class EnregisterOrderServiceImpl implements IEnregisterOrderService{
+
+	private static final String TITLE = "异地人员分布";
+	private static final String MSGNO = "1000";
+	@Resource
+	public IKc02Dao kc02Dao;
+	
+	public ResultModel getEnregisterTop() {
+		return getEnregisterTop(null, null,null);
+	}
+	
+	public ResultModel getEnregisterTop(String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,null);
+		String in_sql = "";
+		String out_sql = "";
+		if (localName == null ) {
+			out_sql = "select yab003 subject, count(*) count from JK_KC02 " + sql + " and  substr(yab003,0,2) = '22' and ydbz = 1 " +
+                    " group by yab003 order by subject desc";
+			in_sql = "select yab300 subject, count(*) count from JK_KC02 " + sql + " and  substr(yab300,0,2) = '22' and ydbz = 1 " +
+                   " group by yab300 order by subject desc";
+		} else {
+			out_sql = "select yab300 subject , count(*) count from jk_kc02 where yab003 = (SELECT aab301 FROM jk_aa26 WHERE aaa146 = '"+localName+"'" +
+                    " AND ROWNUM = 1) and ydbz = 1 group by yab300";
+			in_sql = "select yab003 subject , count(*) count from jk_kc02 where yab300 = (SELECT aab301 FROM jk_aa26 WHERE aaa146 = '"+localName+"'" +
+                     " AND ROWNUM = 1) and ydbz = 1 group by yab003";
+		}
+		
+		//审批出去的排行列表
+		List<Object> list_out = kc02Dao.getSqlData(out_sql);
+		//审批到本省的排行列表
+		List<Object> list_in = kc02Dao.getSqlData(in_sql);
+		//在此对返回的数据进行封装
+		ResultModel rm = ConvertDataToRMUtil.convertDataToRM(list_out, list_in);
+		//在此将地市编码转换成对应的名称
+		rm = convertRM(rm);
+		rm.setTitle(TITLE);
+		return rm;
+	}
+	
+	public String getEnregisterNumber () {
+		return getEnregisterNumber (null, null,null);
+	}
+	
+	public String getEnregisterNumber (String beginTime, String endTime,String localName) {
+		
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,null);
+		String query_sql = "select count(*) subject from JK_KC02 " + sql + " and YDBZ = 1 ";
+		String sql11=" and 1=1 ";
+		String sql22=" and 1=1 ";
+		if(localName!=null){
+			sql11=sql11+" and yab003=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			sql22=sql22+" and yab300=(SELECT aab301 sf FROM jk_aa26 WHERE aaa146='"+localName+"' AND ROWNUM=1 ) ";
+			query_sql = "select count(*) subject from JK_KC02 " + sql +sql11+ " and YDBZ = 1  UNION ALL select count(*) subject from JK_KC02 " + sql +sql22+ " and YDBZ = 1" ;
+		}
+		List<Object> list = kc02Dao.getSqlData(query_sql);
+		String result = ConvertDataToRMUtil.getResultData(list);
+//		if (result.contains(".")) {
+//			result = result.substring(0, result.indexOf("."));
+//		}
+		result=result.replaceAll(".00", "");
+		return result;
+	}
+	
+	private ResultModel convertRM(ResultModel rm) {
+		Map<String, ArrayList> yAxis = rm.getyAxis();
+		Map<String, ArrayList> series = rm.getSeries();
+		ArrayList out_list = yAxis.get("转出");
+		ArrayList in_list = yAxis.get("转入");
+		if (out_list != null && in_list != null) {
+			if (out_list.size() > in_list.size()) {
+				ArrayList tem_list = new ArrayList<>();
+				for (int i = 0; i < out_list.size(); i++) {
+					tem_list.add(0);
+				}
+				for (int i = 0; i < in_list.size(); i++) {
+					if (out_list.contains(in_list.get(i))) {
+						tem_list.set(out_list.indexOf(in_list.get(i)), series.get("转入").get(i));
+					} else {
+						yAxis.get("转出").add(yAxis.get("转入").get(i));
+						series.get("转出").add(series.get("转入").get(i));
+						tem_list.add(0);
+					}
+				}
+				series.put("转入", tem_list);
+			} else {
+				ArrayList tem_list = new ArrayList<>();
+				for (int i = 0; i < in_list.size(); i++) {
+					tem_list.add(0);
+				}
+				for (int i = 0; i < out_list.size(); i++) {
+					if (in_list.contains(out_list.get(i))) {
+						tem_list.set(in_list.indexOf(out_list.get(i)), series.get("转出").get(i));
+					} else {
+						yAxis.get("转入").add(yAxis.get("转出").get(i));
+						series.get("转入").add(series.get("转出").get(i));
+						tem_list.add(0);
+					}
+				}
+				yAxis.put("转出", yAxis.get("转入"));
+				series.put("转出", tem_list);
+			}
+			//将纵坐标的code改成地市名称
+			for (int i = 0; i < yAxis.get("转出").size(); i ++) {
+				String name = convertCodeToCityName(yAxis.get("转出").get(i) + "");
+				yAxis.get("转出").set(i, name);
+			}
+		} else {
+
+			if (out_list != null && out_list.size() > 0) {
+				for (int i = 0; i < out_list.size(); i++) {
+					String code = (String)out_list.get(i);
+					String city_name = convertCodeToCityName(code);
+					rm.getyAxis().get("转出").set(i, city_name);
+				}
+			} else {
+				if (in_list != null && in_list.size() > 0) {
+					ArrayList list = new ArrayList<>();
+					for (int i = 0; i < in_list.size(); i++) {
+						String code = (String)in_list.get(i);
+						String city_name = convertCodeToCityName(code);
+						list.add(city_name);
+					}
+					rm.getyAxis().put("转出", list);
+				}
+			}
+		}
+		
+		return rm;
+	}
+	
+	/**
+	 * @param code
+	 * @return
+	 */
+	public static String convertCodeToCityName (String code) {
+		String city_name = "";
+		switch (code) {
+		case "229900":
+			city_name = "省直";
+			break;
+		case "220000":
+			city_name = "省直";
+			break;
+		case "220100":
+			city_name = "长春";
+			break;
+		case "220200":
+			city_name = "吉林";
+			break;
+		case "220300":
+			city_name = "四平";
+			break;
+		case "220400":
+			city_name = "辽源";
+			break;
+		case "220500":
+			city_name = "通化";
+			break;
+		case "222200":
+			city_name = "长白山";
+			break;
+		case "220600":
+			city_name = "白山";
+			break;
+		case "220700":
+			city_name = "松原";
+			break;
+		case "220800":
+			city_name = "白城";
+			break;
+		case "222400":
+			city_name = "延边";
+			break;
+		case "220381":
+			city_name = "公主岭";
+			break;
+		case "220581":
+			city_name = "梅河口";
+			break;
+		default:
+			city_name = "省直";
+			break;
+		}
+		return city_name;
+	}
+}

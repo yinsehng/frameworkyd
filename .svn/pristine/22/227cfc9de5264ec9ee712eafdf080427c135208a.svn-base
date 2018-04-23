@@ -1,0 +1,84 @@
+<%@page import="java.util.HashMap"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.List"%>
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html; charset=utf-8"%>
+
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+	//获取数据
+	List realtimePerson = (List)request.getAttribute("realtimePerson");
+	List realtimeHospitalize = (List)request.getAttribute("realtimeHospitalize");
+%>
+<script type="text/javascript">
+	//此处调用定时任务
+	$(document).ready(function () {
+		setInterval("getRealtimePersonByAjax()", 10000);
+	});
+	
+	function getRealtimePersonByAjax() {
+		$.ajax( {  
+    	    url:'<%=basePath %>ActionServlet?method=realtimePersonAction&ajax=true',
+    	    data:{},  
+    	    type:'GET',
+    	    cache:false, 
+    	    dataType:'json',
+    	    success:function(data) {
+    	       cosole.log(data);
+    	    }
+    	});
+	}
+</script>
+<!--  实时交易数据展示页面 -->
+<div style="text-align:center;color:#fff;font-weight:bold; font-family:Verdana, Geneva, sans-serif; font-size:16px;">备案实时监控</div>
+		<div id="jy">
+			
+			<div class="listsp">
+            	<table>
+            		<tr>
+                        <td class="t60">姓名</td>
+                        <td class="t160">参保地->就医地</td>
+                        <td class="t130">经办日期</td>
+                	</tr>
+            	<%
+            		for (Object object : realtimePerson) {
+            			HashMap<String, Object> map = (HashMap<String, Object>)object;
+            	%>
+            		<tr>
+                    	<td class="t60"><%=map.get("AAC003") %></td>
+                        <td class="t160"><%=map.get("YAB060")%>-><%=map.get("YAB600") %></td>
+                        <td class="t130"><%=map.get("AAE036") %></td>
+                    </tr>
+            	<%	
+            		}
+            	%>
+                </table>
+            </div>
+		</div>
+		<div style="text-align:center;color:#fff;font-weight:bold; font-family:Verdana, Geneva, sans-serif; font-size:16px;margin-top:15px;">就医实时监控</div>
+		<div id="jy">
+			<div class="listsp">
+            	<table>
+                	<tr>
+                        <td class="t60">姓名</td>
+                         <td class="t30">类别</td>
+                        <td class="t130">就医定点</td>
+                        <td class="t60">结算日期</td>
+                    </tr>
+                    <%
+            		for (Object object : realtimeHospitalize) {
+            			HashMap<String, Object> map = (HashMap<String, Object>)object;
+            	    %>
+            		<tr>
+                    	<td class="t60"><%=map.get("AAC003") %></td>
+                        <td class="t160"><%=map.get("AKA130")%></td>
+                        <td class="t130"><%=map.get("AKB021") %></td>
+                        <td class="t130"><%=map.get("AAE036") %></td>
+                    </tr>
+            	    <%	
+            		  }
+            	    %>
+                </table>
+            	 
+            </div>
+		</div>

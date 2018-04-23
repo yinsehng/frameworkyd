@@ -1,0 +1,9 @@
+package com.neusoft.service;
+
+import com.neusoft.util.ResultModel;
+
+public interface IAllPersonCountTrendService {
+
+	ResultModel getAllPersonCountTrend();
+
+}

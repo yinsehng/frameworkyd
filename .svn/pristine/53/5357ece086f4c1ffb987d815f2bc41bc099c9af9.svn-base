@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JK_KC24Mapper">
+	
+	<resultMap id="BaseResultMap" type="com.neusoft.model.JK_KC24" >
+		<result column="AAE073" property="AAE073" jdbcType="VARCHAR"/>
+	    <result column="AAC001" property="AAC001" jdbcType="VARCHAR"/>
+	    <result column="AAC001_N" property="AAC001_N" jdbcType="VARCHAR"/>
+	    
+	    <result column="AKC193" property="AKC193" jdbcType="VARCHAR"/>
+	    <result column="AKB020" property="AKB020" jdbcType="VARCHAR"/>
+	    <result column="AKB021" property="AKB021" jdbcType="VARCHAR"/>
+	    
+	    <result column="AKC190" property="AKC190" jdbcType="VARCHAR"/>
+	    <result column="YAB003" property="YAB003" jdbcType="VARCHAR"/>
+	    <result column="YAB300" property="YAB300" jdbcType="VARCHAR"/>
+	    
+	    <result column="YKC600" property="YKC600" jdbcType="VARCHAR"/>
+	    <result column="AKC192" property="AKC192" jdbcType="DATE"/>
+	    <result column="AKC194" property="AKC194" jdbcType="DATE"/>
+	    
+	    <result column="AKC264" property="AKC264" jdbcType="DOUBLE"/>
+	    <result column="AKC253" property="AKC253" jdbcType="DOUBLE"/>
+	    <result column="YKC621" property="YKC621" jdbcType="DOUBLE"/>
+	    <result column="AKC255" property="AKC255" jdbcType="DOUBLE"/>
+	    
+	    <result column="AKC256" property="AKC256" jdbcType="DOUBLE"/>
+	    <result column="AKC260" property="AKC260" jdbcType="DOUBLE"/>
+	    <result column="ZKC025" property="ZKC025" jdbcType="DOUBLE"/>
+	    <result column="AKC351" property="AKC351" jdbcType="VARCHAR"/>
+	    
+	    <result column="AKA130" property="AKA130" jdbcType="VARCHAR"/>
+	    <result column="AAE040" property="AAE040" jdbcType="DATE"/>
+	    <result column="AAE011" property="AAE011" jdbcType="VARCHAR"/>
+	    <result column="AAE036" property="AAE036" jdbcType="DATE"/>
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		AAE073, AAC001, AAC001_N, AKC193, AKB020,
+		AKB021, AKC190, YAB003, YAB300, YKC600,
+		AKC192, AKC194, AKC264, AKC253, YKC621, AKC255,
+		AKC256, AKC260, ZKC025, AKC351, AKA130, AAE040,
+		AAE011, AAE036
+	</sql>
+
+	<select id="findAll" resultMap="BaseResultMap">
+		SELECT <include refid="Base_Column_List" />
+		FROM JK_KC24
+	</select>
+	
+	<select id="getDiseaseNameByCode" parameterType="String" resultType="java.lang.String">
+		select YKC600 from JK_KC24 where AKC193 = #{AKC193} and rownum = 1
+	</select>
+	
+	<select id="getSqlData" parameterType="String" resultType="java.util.HashMap">
+	    ${value}
+	</select>
+
+</mapper>

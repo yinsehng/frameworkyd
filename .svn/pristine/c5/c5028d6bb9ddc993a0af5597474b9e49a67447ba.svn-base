@@ -1,0 +1,742 @@
+<%@page import="java.text.SimpleDateFormat"%>
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
+<%@ include file="../public/base.jsp"%>
+<%
+	String allPersonCount = (String)request.getAttribute("allPersonCount");
+	String allPersonDetailCount = (String)request.getAttribute("allPersonDetailCount");
+	String allPersonCountMap = (String)request.getAttribute("allPersonCountMap");
+	String allPersonCountWeight = (String)request.getAttribute("allPersonCountWeight");
+	String allPersonCountTrend = (String)request.getAttribute("allPersonCountTrend");
+	Date date = new Date();
+	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+	String time = formatter.format(date);
+%>
+<body style="background-image: url('<%=basePath%>static/images/bg.jpg');">
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div style="font-size: 35px; text-align: center; color: white; font-weight: bold;">齐齐哈尔市参保统计监控平台
+  		<div style="  text-align: center;color: #aaa;font-weight: bold;font-size: 14px;z-index: 1800">数据时间:<%= time%></div>
+  	</div>
+    <div style="width:27%;height:100%;float: left;margin-top: -5%;">
+    	<div style="width:100%;height:50%;">
+    		<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    		<div id="main1" style="width: 100%;height:100%;padding-top: 17%;"></div>
+    	</div>
+    	<div style="width:100%;height:50%;">
+    		<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    		<div id="main2" style="width: 100%;height:100%;padding-top: 17%;"></div>
+    	</div>
+    </div>
+    <div style="width:46%;height:100%;float:left;margin-top: -2%;">
+    	<div id="main" style="width: 100%;height:100%;float:left;"></div>
+    </div>
+    <div style="width:27%;height:100%;float: left;margin-top: -5%;">
+    	<div style="width:100%;height:50%;">
+    		<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    		<div id="main4" style="width: 100%;height:100%;padding-top: 17%;"></div>
+    	</div>
+    	<div style="width:100%;height:50%;">
+    		<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    		<div id="main5" style="width: 100%;height:100%;padding-top: 17%;"></div>
+    	</div>
+    </div>
+    <script type="text/javascript">
+        var allPersonCount = <%= allPersonCount%>;
+        var allPersonDetailCount = <%= allPersonDetailCount%>;
+        var allPersonCountMap = <%= allPersonCountMap%>;
+        var allPersonCountWeight = <%= allPersonCountWeight%>;
+        var allPersonCountTrend = <%= allPersonCountTrend%>;
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+     	// 基于准备好的dom，初始化echarts实例
+        var myChart1 = echarts.init(document.getElementById('main1'));
+     	// 基于准备好的dom，初始化echarts实例
+        var myChart2 = echarts.init(document.getElementById('main2'));
+     	// 基于准备好的dom，初始化echarts实例
+        var myChart4 = echarts.init(document.getElementById('main4'));
+        var myChart5 = echarts.init(document.getElementById('main5'));
+        var rate_in = getGrowthRate(allPersonCountTrend.series.data[0]);
+        var rate_out = getGrowthRate(allPersonCountTrend.series.data[1]);
+        personCountTrend(allPersonCountTrend);
+        personCount(allPersonCount);
+        personDetailCount(allPersonDetailCount);
+        personCountWeight (allPersonCountWeight);
+        showProvince(allPersonCountMap);
+      //此处调用定时任务
+        $(document).ready(function () {
+        	//setInterval("getDataByAjax()", 10000);
+        });
+        //定义getDiseasesOrderByAjax函数
+        function getDataByAjax() {
+        	$.ajax( {  
+        	    url:'<%=basePath %>ActionServlet?method=indexAction&ajax=true',
+        	    data:{},  
+        	    type:'GET',
+        	    cache:false, 
+        	    dataType:'json',
+        	    success:function(data) {
+        	        console.log(eval('(' + data.allPersonCountTrend_json + ')'));
+        	        personCountTrend(eval('(' + data.allPersonCountTrend_json + ')'));
+        	        personCount(eval('(' + data.allPersonCount_json + ')'));
+        	        personDetailCount(eval('(' + data.allPersonDetailCount_json + ')'));
+        	        personCountWeight (eval('(' + data.allPersonCountWeight_json + ')'));
+        	        showProvince(eval('(' + data.allPersonCountMap_json + ')'));
+        	     }
+        	});
+        }
+function getMapOption (allPersonCountMap) {
+	
+	var option = {
+        title: {
+        	show: false,
+            text: "齐齐哈尔市参保统计监控平台",
+            subtext: '技术支持：东软集团',
+            left: 'center',
+            textStyle: {
+                color: '#fff',
+                
+            }
+        },
+        legend: {
+	        orient: 'horizontal',
+	        left: 50,
+	        top : 150,
+	        textStyle: {
+	            color: '#fff'
+	        },
+	        selectedMode: 'multiple',
+	        data:['职工','居民(含农合)']
+	    },
+	    tooltip: {},
+	    dataRange: {
+	        min: 0,
+	        max: 1000000,
+	        x: 'right',
+	        y: 'bottom',
+	        color:['#ff0000','#00BB00'],
+	        text:['高','低'],           // 文本，默认为数值文本
+	        calculable : true
+	    },
+        series: [
+            {
+                name: '职工',
+                type: 'map',
+                mapType: name,
+                selectedMode : 'single',
+                mapLocation:{
+                    width: 650,
+                    height: 700,
+                 },
+                itemStyle:{
+                    normal:{label:{show:true}},
+                    emphasis:{label:{show:true}}
+                },
+                label: {
+                    normal: {
+                        show: true,
+                        textStyle: {
+                            color: 'rgba(255,255,255,1)'
+                        }
+                    }
+                },
+                data:allPersonCountMap.series.series[0]
+             },
+             {
+                 name: '居民(含农合)',
+                 type: 'map',
+                 mapType: name,
+                 selectedMode : 'single',
+                 itemStyle:{
+                     normal:{label:{show:true}},
+                     emphasis:{label:{show:true}}
+                 },
+                 label: {
+                     normal: {
+                         show: true,
+                         textStyle: {
+                             color: 'rgba(255,255,255,1)'
+                         }
+                     }
+                 },
+                 data:allPersonCountMap.series.series[1]
+              }
+        ]
+    };
+	return option;
+}
+function showProvince(allPersonCountMap) {
+
+    $.get('plugins/echarts/230200.json', function (geoJson) {
+
+        echarts.registerMap(name, geoJson);
+
+        myChart.setOption(option = getMapOption(allPersonCountMap));
+    });
+}
+
+//begin------main1
+function personCount(allPersonCount) {
+	 // 指定图表的配置项和数据
+    var option1 = {
+        title: {
+            text: allPersonCount.title,
+            sublink: 'http://www.neusoft.com',
+            left: 'center',
+            textStyle: {
+	            color: '#fff'
+	        } 
+        },
+        tooltip: {
+        	trigger: 'axis',
+        },
+        legend: {
+            data:['人数'],
+            align: 'left',
+	        right: 55,
+	        itemWidth:10,
+	        itemHeight:10,
+	        textStyle:{
+	        	color:'#fff'
+	        },
+	        top:'35px',
+        },
+        grid: {
+	        left: '3%',
+	        right: '4%',
+	        top: '20%',
+	        containLabel: true
+	    },
+        xAxis: {
+            data: allPersonCount.yAxis.axis,
+            type: 'category',
+			axisLine:{
+                show: true,
+                lineStyle:{
+                    color:'#fff'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name: '人数',
+            axisLabel: {
+                formatter: '{value}',
+				textStyle:{
+                    color:"#FFFAF0", //刻度颜色
+                }
+            },
+            splitLine:{
+                show: true,
+                color:'#fff'
+   			},
+			axisLine:{
+                lineStyle:{
+                    color:'#fff',
+                }
+            }
+        },
+        series: [{
+            name: '人数',
+            type: 'bar',
+            itemStyle:{
+				normal:{
+					color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        offset: 0,
+                        color: '#e25041'
+                    }, {
+                        offset: 1,
+                        color: '#ffb275'
+                    }]),
+				}
+			},
+            data: allPersonCount.series.data
+        }]
+    };
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart1.setOption(option1);
+}
+//end--------main1
+//begin------main2
+function personDetailCount(allPersonDetailCount) {
+	 // 指定图表的配置项和数据
+    var option2 = {
+    		  title: {
+                  text: allPersonDetailCount.title,
+                  sublink: 'http://www.neusoft.com',
+                  left: 'center',
+                  textStyle: {
+  		            color: '#fff'
+  		        } 
+              },
+    	    tooltip : {
+    	        trigger: 'axis',
+    	        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+    	            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+    	        }
+    	    },
+    	    legend: {
+    	        data:['职工','居民(含农合)'],
+    	        align: 'left',
+		        right: 55,
+		        itemWidth:10,
+		        itemHeight:10,
+		        textStyle:{
+		        	color:'#fff'
+		        },
+		        top:'35px',
+    	    },
+    	    grid: {
+    	        left: '3%',
+    	        right: '4%',
+    	        top: '20%',
+    	        containLabel: true
+    	    },
+    	    xAxis : [
+    	        {
+    	            type: 'category',
+    				axisLine:{
+    	                show: true,
+    	                lineStyle:{
+    	                    color:'#fff'
+    	                }
+    	            },
+    	            data : allPersonDetailCount.yAxis.axis,
+    	        }
+    	    ],
+    	    yAxis : [
+    	        {
+    	            type : 'value',
+    	            axisLabel: {
+    	                formatter: '{value}',
+    					textStyle:{
+    	                    color:"#FFFAF0", //刻度颜色
+    	                }
+    	            },
+    	            splitLine:{
+    	                show: true,
+    	                color:'#fff'
+    	   			},
+    				axisLine:{
+    	                lineStyle:{
+    	                    color:'#fff',
+    	                }
+    	            }
+    	        }
+    	    ],
+    	    series : [
+    	       
+    	        {
+    	            name:'职工',
+    	            type:'bar',
+    	            stack: '人数',
+    	            data:allPersonDetailCount.series.data[0]
+    	        },
+    	        {
+    	            name:'居民(含农合)',
+    	            type:'bar',
+    	            stack: '人数',
+    	            itemStyle : { 
+		            	normal: {
+		            		label : {
+		            			show: false, 
+		            			position: 'insideRight'
+		            			},
+		            			
+		            		color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+				                        offset: 0,
+				                        color: '#00c7ab'
+				                    }, {
+				                        offset: 1,
+				                        color: '#75e1c2'
+				                    }]),
+		                }
+		            },
+    	            data:allPersonDetailCount.series.data[1]
+    	        }
+    	    ]
+    	};
+
+    // 使用刚指定的配置项和数据显示图表。
+    myChart2.setOption(option2);
+	
+}
+//end--------main2
+//begin------main4
+function personCountTrend (allPersonCountTrend) {
+    // 指定图表的配置项和数据
+    /* var option4 = {
+    	    title: {
+    	        text: allPersonCountTrend.title,
+    	        sublink: 'http://www.neusoft.com',
+		        left: 'center',
+		        textStyle: {
+		            color: '#fff'
+		        }
+    	    },
+    	    legend: {
+    	        data:['职工','居民(含农合)'],
+    	        align: 'left',
+		        right: 55,
+		        itemWidth:10,
+		        itemHeight:10,
+		        textStyle:{
+		        	color:'#fff'
+		        },
+		        top:'35px',
+    	    },
+    	    tooltip : {
+    	        trigger: 'axis'
+    	    },
+    	    grid: {
+    	        left: '3%',
+    	        right: '4%',
+    	        top: '20%',
+    	        containLabel: true
+    	    },
+    	    toolbox: {
+    	        show: false,
+    	        feature: {
+    	            dataZoom: {
+    	                yAxisIndex: 'none'
+    	            },
+    	            dataView: {readOnly: false},
+    	            magicType: {type: ['line', 'bar']},
+    	            restore: {},
+    	            saveAsImage: {}
+    	        }
+    	    },
+    	    xAxis:  {
+    	        type: 'category',
+    	        boundaryGap: false,
+    	        axisLine:{
+	                show: true,
+	                lineStyle:{
+	                    color:'#fff'
+	                }
+	            },
+    	        data: allPersonCountTrend.yAxis.axis
+    	    },
+    	    yAxis: {
+    	        type: 'value',
+    	        axisLabel: {
+	                formatter: '{value}',
+					textStyle:{
+	                    color:"#FFFAF0", //刻度颜色
+	                }
+	            },
+	            splitLine:{
+	                show: true,
+	                color:'#fff'
+	   			},
+				axisLine:{
+	                lineStyle:{
+	                    color:'#fff',
+	                }
+	            },
+    	        axisLabel: {
+    	            formatter: '{value}'
+    	        }
+    	    },
+    	    series: [
+    	        {
+    	            name:'职工',
+    	            type:'line',
+    	            data:allPersonCountTrend.series.data[0],
+    	            markPoint: {
+    	                data: [
+    	                    {type: 'max', name: '最大值'},
+    	                    {type: 'min', name: '最小值'}
+    	                ]
+    	            }
+    	        },
+    	        {
+    	            name:'居民(含农合)',
+    	            type:'line',
+    	            itemStyle : { 
+		            	normal: {
+		            		label : {
+		            			show: false, 
+		            			position: 'insideRight'
+		            			},
+		            			barBorderRadius: [0, 30, 30,0],
+		            			
+		            		color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+				                        offset: 0,
+				                        color: '#00c7ab'
+				                    }, {
+				                        offset: 1,
+				                        color: '#75e1c2'
+				                    }]),
+		                }
+		            },
+    	            data:allPersonCountTrend.series.data[1],
+    	            markPoint: {
+    	                data: [
+    	                    {type: 'max', name: '最大值'},
+    	                    {type: 'min', name: '最小值'}
+    	                ]
+    	            }
+    	        }
+    	    ]
+    	};
+ */
+ 
+ //-----------------------------------------------
+ var option4 = {
+        			title: {
+        			        text: allPersonCountTrend.title,
+        			        sublink: 'http://www.neusoft.com',
+        			        left: 'center',
+        			        textStyle: {
+        			            color: '#fff'
+        			        },
+        			        top:'1px'
+        			    },
+        			    tooltip: {
+        			        trigger: 'axis',
+        			    },
+        			    toolbox: {
+        			        feature: {
+        			            
+        			        }
+        			    },
+        				legend: {
+        					show:false,
+					        data: ['职工', '居民', '职工增长率','居民(含农合)增长率'],
+					        align: 'left',
+					        right: 55,
+					        itemWidth:10,
+					        itemHeight:10,
+					        textStyle:{
+					        	//fontSize:10,
+					        	color:'#fff'
+					        },
+					        top:'12px',
+					        
+					    },
+        			    xAxis: [
+        			        {
+        			            type: 'category',
+        			            data: allPersonCountTrend.yAxis.axis,
+        						axisLine:{
+        			                show: true,
+        			                lineStyle:{
+        			                    color:'#fff'
+        			                }
+        			            }
+        						
+        			        }
+        			    ],
+        			    yAxis: [
+        			        {
+        			            type: 'value',
+        			            name: '人数',
+        			            min: 0,
+        			            max: 1000000,
+        			            axisLabel: {
+        			                formatter: '{value}',
+        							textStyle:{
+        			                    color:"#FFFAF0", //刻度颜色
+        			                }
+        						 
+        			            },
+        			            splitLine:{
+        			                show: true,
+        			                color:'#fff'
+        			   },
+        						axisLine:{
+        			                lineStyle:{
+        			                    color:'#fff',
+        			                  
+        			                }
+        			            }
+        						
+        			        },
+        			        {
+        			            type: 'value',
+        			            name: '增长率',
+        			            min: -10,
+        			            max: 20,
+        			            interval: 5,
+        			            axisLabel: {
+        			                formatter: '{value}',
+        							textStyle:{
+        			                 color:"#FFFAF0", //刻度颜色
+        			                 
+        			            }
+        			            },
+        			             splitLine:{
+        			                show: false
+        			            },
+        						axisLine:{
+        			                lineStyle:{
+        			                    color:'#fff',
+        			                  
+        			                }
+        			            }
+        			        }
+        			    ],
+        			    series: [
+        			        {
+        			            name:'职工',
+        			            type:'bar',
+        						barWidth : 15,
+        						itemStyle:{
+        							normal:{
+        								color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+					                        offset: 0,
+					                        color: '#e25041'
+					                    }, {
+					                        offset: 1,
+					                        color: '#ffb275'
+					                    }]),
+        							}
+        						},
+        			            data:allPersonCountTrend.series.data[0],
+        			        },
+        			
+        			        {
+        			            name:'居民(含农合)',
+        			            type:'bar',
+        			            barWidth : 15,
+        			            itemStyle:{
+        							normal:{
+        								color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+					                        offset: 0,
+					                        color: '#00c7ab'
+					                    }, {
+					                        offset: 1,
+					                        color: '#75e1c2'
+					                    }]),
+        							}
+        						},
+        			            data:allPersonCountTrend.series.data[1],
+        			        },
+        			       
+        			        {
+        			            name:'职工增长率',
+        			            type:'line',
+        						itemStyle: {
+        						normal:{
+        							lineStyle: {
+        			            color: '#6cf7f7'
+        			        }
+        						}
+        				
+        					},
+        			            yAxisIndex: 1,
+        			            data:rate_in
+        			        },
+        			        {
+        			            name:'居民(含农合)增长率',
+        			            type:'line',
+        						itemStyle: {
+        						normal:{
+        							lineStyle: {
+        			            color: '#f86b4f'
+        			        }
+        						}
+        				
+        					},
+        			            yAxisIndex: 1,
+        			            data:rate_out
+        			        }
+        			    ]
+        			};
+ //-----------------------------------------------
+    // 使用刚指定的配置项和数据显示图表。
+    myChart4.setOption(option4);
+}
+//end--------main4
+//begin------main5
+// 基于准备好的dom，初始化echarts实例
+function personCountWeight (allPersonCountWeight) {
+    // 指定图表的配置项和数据
+    var option5 = {
+        	top: 10,
+    		title: {
+		        text: allPersonCountWeight.title,
+		        sublink: 'http://www.neusoft.com',
+		        left: 'center',
+		        textStyle: {
+		            color: '#fff'
+		        }
+		    },
+    tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b}: {c} ({d}%)"
+    },
+    legend: {
+        data:['职工','居民(含农合)'],
+        align: 'left',
+        right: 55,
+        itemWidth:10,
+        itemHeight:10,
+        textStyle:{
+        	color:'#fff'
+        },
+        top:'35px',
+    },
+    series: [
+        {
+            name:'人员类别',
+            type:'pie',
+            selectedMode: 'single',
+            center: ['50%','50%'],
+            radius: [0, '50%'],
+
+            label: {
+                normal: {
+                    position: 'inner'
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: false
+                }
+            },
+            data: allPersonCountWeight.series.dataout
+        },
+        {
+            name:'人员类别',
+            type:'pie',
+            center: ['50%','50%'],
+            radius: ['60%', '75%'],
+            label: {
+                normal: {
+                    position: 'inner'
+                }
+            },
+            labelLine: {
+                normal: {
+                    show: true
+                }
+            },
+            data:allPersonCountWeight.series.datain
+        }
+    ]
+};
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart5.setOption(option5);
+	
+}
+
+function getGrowthRate(data) {
+	var arr = new Array();
+	arr[0] = 0;
+	for (var i = 0; i < data.length - 1; i++) {
+		if (data[i] == 0) {
+			arr[i+1] = data[i+1];
+		} else {
+			arr[i+1] = ((data[i+1] - data[i])/data[i]).toFixed(2);
+		}
+	}
+	return arr;
+}
+//end--------main5
+    </script>
+</body>
+</html>
+
+

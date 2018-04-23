@@ -1,0 +1,10 @@
+package com.neusoft.service;
+
+import com.neusoft.util.ResultModel;
+
+public interface IElsewherePersonService {
+
+	public ResultModel getElsewherePerson();
+	
+	public ResultModel getElsewherePerson(String beginTime, String endTime,String localName);
+}

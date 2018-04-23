@@ -1,0 +1,34 @@
+package com.neusoft.controller.business;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.service.IAllPersonCountMapService;
+import com.neusoft.util.ResultModel;
+
+@Controller
+public class AllPersonCountMapAction implements SuperAction{
+
+	@Autowired
+	private IAllPersonCountMapService allPersonCountMapService;
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		ResultModel allPersonCountMap_rm = allPersonCountMapService.getAllPersonDetCountMap();
+		String allPersonCountMap_json = JSON.toJSONString(allPersonCountMap_rm);
+		return allPersonCountMap_json;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

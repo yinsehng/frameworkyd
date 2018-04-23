@@ -1,0 +1,276 @@
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8" contentType="text/html; charset=utf-8"%>
+<% 
+	String path = request.getContextPath();
+	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+	//获取数据
+	String businessMoney_json = (String)request.getAttribute("businessMoney_json");
+%>
+<!-- 交易金额页面定义 -->
+<!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+<div id="business_money" style="height:100%;width:100%"></div>
+<!-- ECharts单文件引入 -->
+
+<div style="width: 100% ; height: 100%;">
+	<script type="text/javascript">
+        // 基于准备好的dom，初始化echarts图表
+        var businessMoney_json = <%= businessMoney_json %>
+        
+        var myChartBusinessMoney = echarts.init(document.getElementById('business_money'));
+        
+        flushBusinessMoney(businessMoney_json);
+        //此处调用定时任务
+        $(document).ready(function () {
+        	setInterval("getBusinessMoneyByAjax()", 100000);
+        });
+        //定义getDiseasesOrderByAjax函数
+        function getBusinessMoneyByAjax() {
+        	if(autoflag!=1){
+				return;
+			}
+        	$.ajax( {  
+        	    url:'<%=basePath %>ActionServlet?method=businessMoneyAction&ajax=true',
+        	    data:{},  
+        	    type:'GET',
+        	    cache:false, 
+        	    dataType:'json',
+        	    success:function(resultmodel) {
+        	        if(resultmodel.code =="200" ){
+        	        	flushBusinessMoney(resultmodel);
+        	        }
+        	     },
+        	     error : function() {
+        	         if (resultmodel.code =="500"){
+        	        	  alert(resultmodel.message);
+        	         }
+        	     }
+        	});
+        }
+        function flushBusinessMoney(businessMoney_json) {
+        	//取最长的月份范围作为X轴的下标
+            var xAxis_data = null;
+            //取最大的金额
+            var maxMoney = getMaxMoney(businessMoney_json);
+            if (businessMoney_json.yAxis.转入 != null && businessMoney_json.yAxis.转出 != null) {
+            	var size_in = (businessMoney_json.yAxis.转入).length;
+            	var size_out = (businessMoney_json.yAxis.转出).length;
+            	if (size_in > size_out) {
+            		xAxis_data = businessMoney_json.yAxis.转入;
+            	} else {
+            		xAxis_data = businessMoney_json.yAxis.转出;
+            	}
+            }
+            //对金额数据进行处理，转成以万元为单位
+            var series_in = getSeriesData(businessMoney_json.series.转入);
+            var series_out = getSeriesData(businessMoney_json.series.转出);
+            //得到转入转出的增长率
+            var rate_in = getGrowthRate(businessMoney_json.series.转入);
+            var rate_out = getGrowthRate(businessMoney_json.series.转出);
+        	
+        	option = {
+        			title: {
+        			        text: businessMoney_json.title,
+        			        sublink: 'http://www.neusoft.com',
+        			        left: 'center',
+        			        textStyle: {
+        			            color: '#fff'
+        			        },
+        			        top:'1px'
+        			    },
+        			    tooltip: {
+        			        trigger: 'axis',
+        			    },
+        			    toolbox: {
+        			        feature: {
+        			            
+        			        }
+        			    },
+        				legend: {
+        					show:false,
+					        data: ['转入', '转出', '转入增长率', '转出增长率'],
+					        align: 'left',
+					        right: 55,
+					        itemWidth:10,
+					        itemHeight:10,
+					        textStyle:{
+					        	//fontSize:10,
+					        	color:'#fff'
+					        },
+					        top:'12px',
+					        
+					    },
+        			    xAxis: [
+        			        {
+        			            type: 'category',
+        			            data: xAxis_data,
+        						axisLine:{
+        			                show: true,
+        			                lineStyle:{
+        			                    color:'#fff'
+        			                }
+        			            }
+        						
+        			        }
+        			    ],
+        			    yAxis: [
+        			        {
+        			            type: 'value',
+        			            name: '金额（万元）',
+        			            min: 0,
+        			            max: maxMoney,
+        			            axisLabel: {
+        			                formatter: '{value}',
+        							textStyle:{
+        			                    color:"#FFFAF0", //刻度颜色
+        			                }
+        						 
+        			            },
+        			            splitLine:{
+        			                show: true,
+        			                color:'#fff'
+        			   },
+        						axisLine:{
+        			                lineStyle:{
+        			                    color:'#fff',
+        			                  
+        			                }
+        			            }
+        						
+        			        },
+        			        {
+        			            type: 'value',
+        			            name: '增长率',
+        			            min: -10,
+        			            max: 20,
+        			            interval: 5,
+        			            axisLabel: {
+        			                formatter: '{value}',
+        							textStyle:{
+        			                 color:"#FFFAF0", //刻度颜色
+        			                 
+        			            }
+        			            },
+        			             splitLine:{
+        			                show: false
+        			            },
+        						axisLine:{
+        			                lineStyle:{
+        			                    color:'#fff',
+        			                  
+        			                }
+        			            }
+        			        }
+        			    ],
+        			    series: [
+        			        {
+        			            name:'转入',
+        			            type:'bar',
+        						barWidth : 15,
+        						itemStyle:{
+        							normal:{
+        								color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+					                        offset: 0,
+					                        color: '#e25041'
+					                    }, {
+					                        offset: 1,
+					                        color: '#ffb275'
+					                    }]),
+        							}
+        						},
+        			            data:series_in
+        			        },
+        			
+        			        {
+        			            name:'转出',
+        			            type:'bar',
+        			            barWidth : 15,
+        			            itemStyle:{
+        							normal:{
+        								color:new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+					                        offset: 0,
+					                        color: '#00c7ab'
+					                    }, {
+					                        offset: 1,
+					                        color: '#75e1c2'
+					                    }]),
+        							}
+        						},
+        			            data:series_out
+        			        },
+        			       
+        			        {
+        			            name:'转入增长率',
+        			            type:'line',
+        						itemStyle: {
+        						normal:{
+        							lineStyle: {
+        			            color: '#6cf7f7'
+        			        }
+        						}
+        				
+        					},
+        			            yAxisIndex: 1,
+        			            data:rate_in
+        			        },
+        			        {
+        			            name:'转出增长率',
+        			            type:'line',
+        						itemStyle: {
+        						normal:{
+        							lineStyle: {
+        			            color: '#f86b4f'
+        			        }
+        						}
+        				
+        					},
+        			            yAxisIndex: 1,
+        			            data:rate_out
+        			        }
+        			    ]
+        			};
+        	          
+        	        // 为echarts对象加载数据 
+        	        myChartBusinessMoney.setOption(option); 
+        }
+		
+        
+        function getMaxMoney(businessMoney_json) {
+        	var data_in = businessMoney_json.series.转入;
+        	var data_out = businessMoney_json.series.转出;
+        	var num_in = getMax(data_in);
+        	var num_out = getMax(data_out);
+        	if (num_in > num_out) {
+        		return Math.ceil(num_in/10000);
+        	} else {
+        		return Math.ceil(num_out/10000);
+        	}
+        }
+        function getMax(data) {
+        	var tem = data[0];
+        	for (var i = 0; i < data.length; i++) {
+        		if  (data[i] > tem) {
+        			tem = data[i];
+        		}
+        	}
+        	return tem;
+        }
+        
+        function getSeriesData(data) {
+        	for (var i = 0; i < data.length; i++) {
+        		data[i] = (data[i]/10000).toFixed(2);
+        	}
+        	return data;
+        }
+        function getGrowthRate(data) {
+        	var arr = new Array();
+        	arr[0] = 0;
+        	for (var i = 0; i < data.length - 1; i++) {
+        		if (data[i] == 0) {
+        			arr[i+1] = data[i+1];
+        		} else {
+        			arr[i+1] = ((data[i+1] - data[i])/data[i]).toFixed(2);
+        		}
+        	}
+        	return arr;
+        }
+    </script>
+</div>

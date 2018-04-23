@@ -1,0 +1,54 @@
+package com.neusoft.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IAa10Dao;
+import com.neusoft.dao.IKc02Dao;
+import com.neusoft.service.IElsewherePersonService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.ResultModel;
+@Service
+public class ElsewherePersonServiceImpl implements IElsewherePersonService {
+
+	private static final String TITLE = "异地人员构成";
+	
+	@Resource
+	public IAa10Dao aa10Dao;
+	@Resource
+	public IKc02Dao kc02Dao;
+	
+	public ResultModel getElsewherePerson() {
+		return getElsewherePerson(null, null,null);
+	}
+	
+	public ResultModel getElsewherePerson(String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,localName);
+		//得到审批类别
+		String fl_sql = "SELECT COUNT(*) COUNT, AKC170 SUBJECT FROM JK_KC02 " + sql + " GROUP BY AKC170";
+		String in_sql = "select count(*) count from JK_KC02 " + sql + " and substr(yab003,0,2) = '22' and substr(yab300,0,2) = '22'";
+		String out_sql = "select count(*) count from JK_KC02 " + sql + " and substr(yab300,0,2) = '22' and substr(yab003,0,2) = '22'";
+		String birthday_sql = "SELECT  to_char(aac006,'yyyy') BIRTHDAY ,to_char(COUNT(1)) count FROM jk_kc02 " + sql + " and AAC006 is not null and YDBZ = 1 GROUP BY  to_char(aac006,'yyyy')";
+	    List<Object> list_fl = kc02Dao.getSqlData(fl_sql);
+		List<Object> list_in = kc02Dao.getSqlData(in_sql); 
+		List<Object> list_out = kc02Dao.getSqlData(out_sql);
+		List<Object> list_birthday = kc02Dao.getSqlData(birthday_sql);
+		list_fl = ConvertRm(list_fl);
+		ResultModel rm = ConvertDataToRMUtil.convertDataToRM(list_fl, list_in, list_out, list_birthday);
+		rm.setTitle(TITLE);
+		return rm;
+	}
+
+	private List<Object> ConvertRm(List<Object> list_fl) {
+		for (Object  obj : list_fl) {
+			HashMap<String, String> map = (HashMap<String, String>)obj;
+			map.put("SUBJECT", aa10Dao.getNameByCode("AKC170", map.get("SUBJECT")));
+		}
+		return list_fl;
+	}
+	
+}

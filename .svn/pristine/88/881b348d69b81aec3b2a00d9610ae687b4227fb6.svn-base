@@ -1,0 +1,64 @@
+package com.neusoft.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.neusoft.dao.IKc24Dao;
+import com.neusoft.service.IDiseasesOrderService;
+import com.neusoft.util.ConvertDataToRMUtil;
+import com.neusoft.util.ResultModel;
+
+@Service
+public class DiseasesOrderServiceImpl implements IDiseasesOrderService{
+
+	private static final String TITLE = "就医病种分布";
+	private static final String MSGNO = "1001";
+	@Resource
+	public IKc24Dao kc24Dao;
+	
+	@Override
+	public ResultModel getDiseasesOrderTop() {
+		return getDiseasesOrderTop(null, null,null);
+	}
+	
+	@Override
+	public ResultModel getDiseasesOrderTop(String beginTime, String endTime,String localName) {
+		String sql = ConvertDataToRMUtil.getCommonSql(beginTime, endTime,localName);
+		String out_sql = "select *from ( select  count(*) count, AKC193 subject from JK_KC24 " + sql + " and akc193 is not null and substr(yab003, 0, 2) = '22' " +
+			      " group by AKC193 order by count desc)  where  rownum < 6 order by count asc";
+		String in_sql = "select *from ( select  count(*) count, AKC193 subject from JK_KC24 " + sql + " and akc193 is not null and substr(yab300, 0, 2) = '22' " +
+		          " group by AKC193 order by count desc)  where   rownum < 6 order by count asc";
+		//到外就医疾病排行
+		List<Object> list_out = kc24Dao.getSqlData(out_sql);
+		//在本省就医疾病排行
+		List<Object> list_in = kc24Dao.getSqlData(in_sql);
+		//在此对返回的数据进行封装
+		ResultModel rm = ConvertDataToRMUtil.convertDataToRM(list_out, list_in);
+		//在此将疾病编码转换成对应的名称
+		rm= convertRM(rm);
+		rm.setTitle(TITLE);
+		return rm;
+	}
+	private ResultModel convertRM(ResultModel rm) {
+		Map<String, ArrayList> yAxis = rm.getyAxis();
+		ArrayList out_list = yAxis.get("转出");
+		for (int i = 0; i < out_list.size(); i++) {
+			String code = (String)out_list.get(i);
+			String disease_name = kc24Dao.getDiseaseNameByCode(code);
+			rm.getyAxis().get("转出").set(i, disease_name);
+		}
+		ArrayList in_list = yAxis.get("转入");
+		for (int i = 0; i < in_list.size(); i++) {
+			String code = (String)in_list.get(i);
+			String disease_name = kc24Dao.getDiseaseNameByCode(code);
+			rm.getyAxis().get("转入").set(i, disease_name);
+		}
+		return rm;
+	}
+
+}

@@ -1,0 +1,157 @@
+package com.neusoft.controller.business;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.model.JK_AA26;
+import com.neusoft.service.IBusinessMoneyService;
+import com.neusoft.service.IDataTransferMapService;
+import com.neusoft.service.IDiseasesOrderService;
+import com.neusoft.service.IElsewhereHospitalizeService;
+import com.neusoft.service.IElsewherePersonService;
+import com.neusoft.service.IEnregisterOrderService;
+import com.neusoft.service.IIndexService;
+import com.neusoft.service.IRealtimeHospitalizeService;
+import com.neusoft.service.IRealtimePersonService;
+import com.neusoft.util.ResultModel;
+
+@Controller
+public class IndexAction implements SuperAction{
+	@Autowired
+	public IDiseasesOrderService diseasesOrderService;
+	@Autowired
+	public IEnregisterOrderService enregisterOrderService;
+	@Autowired
+	public IDataTransferMapService dataTransferMapService;
+	@Autowired
+	public IElsewhereHospitalizeService elsewhereHospitalizeService;
+	@Resource
+	public IElsewherePersonService elsewherePersonService;
+	@Autowired
+	public IBusinessMoneyService businessMoneyService;
+	@Autowired
+	public IRealtimePersonService realtimePersonService;
+	@Autowired
+	public IRealtimeHospitalizeService realtimeHospitalizeService;
+	
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		String beginTime = (String)request.getParameter("beginTime");
+		String endTime = (String)request.getParameter("endTime");
+		String flag = (String)request.getParameter("flag");
+		String localName = (String)request.getParameter("localName");
+		
+		HashMap<String, String> map = new HashMap<>();
+		if (!"realtimedata".equals(flag)) {
+			ResultModel diseasesOrder_rm = diseasesOrderService.getDiseasesOrderTop(beginTime, endTime,localName);
+			String diseasesOrder_json = JSON.toJSONString(diseasesOrder_rm);
+			map.put("diseasesOrder_json", diseasesOrder_json);
+			
+			ResultModel enregisterOrder_rm = enregisterOrderService.getEnregisterTop(beginTime, endTime,localName);
+			String enregisterOrder_json = JSON.toJSONString(enregisterOrder_rm);
+			map.put("enregisterOrder_json", enregisterOrder_json);
+			
+			ResultModel rm = elsewhereHospitalizeService.getElsewherePerson(beginTime, endTime,localName);
+			String elsewhereHospitalize_json = JSON.toJSONString(rm);
+			map.put("elsewhereHospitalize_json", elsewhereHospitalize_json);
+			
+			ResultModel businessMoney_rm = businessMoneyService.getBusinessMoney(beginTime, endTime,localName);
+			String businessMoney_json = JSON.toJSONString(businessMoney_rm);
+			map.put("businessMoney_json", businessMoney_json);
+			
+			ResultModel elsewherePerson_rm = elsewherePersonService.getElsewherePerson(beginTime, endTime,localName);
+			String elsewherePerson_json = JSON.toJSONString(elsewherePerson_rm);
+			map.put("elsewherePerson_json", elsewherePerson_json);
+		}
+		
+		//实时交易金额
+		String total_money = businessMoneyService.getBusinessTotalMoney(beginTime, endTime,localName);
+		//结算人数
+		String banance_number = businessMoneyService.getBalanceNumber(beginTime, endTime,localName);
+		//备案人数
+		String enregister_number = enregisterOrderService.getEnregisterNumber(beginTime, endTime,localName);
+		
+		map.put("total_money", total_money);
+		map.put("banance_number", banance_number);
+		map.put("enregister_number", enregister_number);
+		
+		String data = JSON.toJSONString(map);
+		
+		return data;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		try {
+			ResultModel diseasesOrder_rm = diseasesOrderService.getDiseasesOrderTop();
+			String diseasesOrder_json = JSON.toJSONString(diseasesOrder_rm);
+			request.setAttribute("diseasesOrder_json", diseasesOrder_json);
+			
+			ResultModel enregisterOrder_rm = enregisterOrderService.getEnregisterTop();
+			String enregisterOrder_json = JSON.toJSONString(enregisterOrder_rm);
+			request.setAttribute("enregisterOrder", enregisterOrder_json);
+			
+			//地图
+//			List<Object> aa26=dataTransferMapService.getAllAa26();
+//			request.setAttribute("aa26", aa26);
+			
+			//地图
+			ResultModel mapData=dataTransferMapService.getMapData();
+			String mapData_json = JSON.toJSONString(mapData);
+			request.setAttribute("mapData", mapData_json);
+			
+			//异地就医分布-雷达图
+			ResultModel rm = elsewhereHospitalizeService.getElsewherePerson();
+			String elsewhereHospitalize_json = JSON.toJSONString(rm);
+			request.setAttribute("elsewhereHospitalize_json", elsewhereHospitalize_json);
+			
+			//金额走势
+			ResultModel businessMoney_rm = businessMoneyService.getBusinessMoney();
+			String businessMoney_json = JSON.toJSONString(businessMoney_rm);
+			request.setAttribute("businessMoney_json", businessMoney_json);
+			
+			ResultModel elsewherePerson_rm = elsewherePersonService.getElsewherePerson();
+			String elsewherePerson_json = JSON.toJSONString(elsewherePerson_rm);
+			request.setAttribute("elsewherePerson_json", elsewherePerson_json);
+			
+			//实时交易(人员备案)
+			List realtimePerson_list = realtimePersonService.getRealtimePerson();
+			request.setAttribute("realtimePerson", realtimePerson_list);
+			
+			//实时交易(就医)
+			List realtimeHospitalize_list = realtimeHospitalizeService.getRealtimeHospitalize();
+			request.setAttribute("realtimeHospitalize", realtimeHospitalize_list);
+			
+			//实时交易金额
+			String total_money = businessMoneyService.getBusinessTotalMoney();
+			//结算人数
+			String banance_number = businessMoneyService.getBalanceNumber();
+			//备案人数
+			String enregister_number = enregisterOrderService.getEnregisterNumber();
+			
+			request.setAttribute("total_money", total_money);
+			request.setAttribute("banance_number", banance_number);
+			request.setAttribute("enregister_number", enregister_number);
+			
+			request.getRequestDispatcher("/jk/index.jsp").forward(request, response);
+			
+		} catch (ServletException | IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+}

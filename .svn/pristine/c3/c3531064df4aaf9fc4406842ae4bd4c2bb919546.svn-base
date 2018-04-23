@@ -1,0 +1,13 @@
+package com.neusoft.util;
+
+import java.util.Calendar;
+
+public class DateUtil {
+
+	public static int getYear() {
+		Calendar cal = Calendar.getInstance();
+		return cal.get(Calendar.YEAR);
+	}
+	
+	
+}

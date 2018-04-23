@@ -1,0 +1,44 @@
+//通过选项，时间查询结算或者对账的数据
+function getData(options,begin_time,end_time){
+	$.ajax( {  
+	    url:'<%=basePath %>ActionServlet?method=elsewhereHospitalizeAction&ajax=true',
+	    data:{
+	    	'options' : options,
+	    	'begin_time' : begin_time,
+	    	'end_time' : end_time
+	    },  
+	    type:'POST',
+	    cache:false, 
+	    dataType:'json',
+	    success:function(resultmodel) {
+	        if(resultmodel.code =="200" ){
+	        	flushElsewhereHospitalize(resultmodel);
+	        }
+	     },
+	     error : function() {
+	         if (resultmodel.code =="500"){
+	        	  alert(resultmodel.message);
+	         }
+	     }
+	});
+}
+
+function fixWindow() {
+    //item所占的宽度 = 自身宽度+marginleft
+    var item = $(".fishBone .bd .item");
+    var marginleft = parseInt(item.css('margin-left'))
+    var item_w = item.width() + marginleft;
+
+    //显示区域
+    var bd_w = $(".fishBone .bd").width();
+    //能显示的个数 取整
+    var rowcount = parseInt(bd_w / item_w);
+    if (rowcount > item.size()) {
+        //rowcount = item.size();
+        $(".fishBone .prev,.fishBone .next").hide()
+    }
+    //设置新的宽度使其平均分布
+    var item_w_temp = bd_w / rowcount - marginleft;
+    item.width(item_w_temp);
+    return rowcount;
+};

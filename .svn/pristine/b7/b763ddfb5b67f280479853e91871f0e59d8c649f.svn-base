@@ -1,0 +1,34 @@
+package com.neusoft.controller.business;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.model.JY_KC24;
+import com.neusoft.service.IJYKC24Service;
+
+@Controller
+public class JsBusinessAction implements SuperAction{
+
+	@Resource
+	public IJYKC24Service jyIjykc24Service;
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		String akc351 = (String)request.getParameter("akc351");
+		JY_KC24 kc24 = jyIjykc24Service.getKc24ByAkc351(akc351);
+		String kc24_json = JSON.toJSONString(kc24);
+		return kc24_json;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		// TODO Auto-generated method stub
+		
+	}
+}

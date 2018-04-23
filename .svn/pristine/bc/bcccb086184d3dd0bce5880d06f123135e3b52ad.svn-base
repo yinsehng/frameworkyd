@@ -1,0 +1,40 @@
+package com.neusoft.controller.business;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.alibaba.fastjson.JSON;
+import com.neusoft.controller.util.SuperAction;
+import com.neusoft.service.IAllPersonCountService;
+import com.neusoft.util.ResultModel;
+/**
+ * 此类用于实现全市的人员类别统计(柱状图)
+ * @author Administrator
+ *
+ */
+@Controller
+public class AllPersonCountAction implements SuperAction{
+
+	@Autowired
+	private IAllPersonCountService allPersonCountService;
+	
+	@Override
+	public String actionAjaxHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		//通过AJAX获取全市的人员类别数据
+		ResultModel resultModel = allPersonCountService.getAllPersonCount();
+		String allPersonCount_json = JSON.toJSONString(resultModel);
+		return allPersonCount_json;
+	}
+
+	@Override
+	public void actionForwardHandler(HttpServletRequest request,
+			HttpServletResponse response) {
+		
+		
+	}
+
+}
